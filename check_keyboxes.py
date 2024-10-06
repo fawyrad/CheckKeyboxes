@@ -16,7 +16,6 @@ def compute_file_hash(file_path):
     with open(file_path, "rb") as f:
         for byte_block in f:
             md5_hash.update(byte_block)
-    #print(md5_hash.hexdigest())
     return md5_hash.hexdigest()
 
 # Function to check a single keybox
