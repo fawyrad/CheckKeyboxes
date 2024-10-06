@@ -3,7 +3,7 @@
 A Python script to batch process a directory with keybox XML files.
 
 **What it does:**
-- checks for valid keybox XML files
+- checks if XML files are valid keybox XML files
 - checks for duplicated keybox XML files
 - checks if keybox has been revoked
 - checks if keybox has expired
