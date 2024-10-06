@@ -8,16 +8,16 @@ A Python script to batch process a directory with keybox XML files.
 - checks if keybox has been revoked
 - checks if keybox has expired
 - checks if keybox is software signed
-- renames valid XML files to keybox_{checksum}.xml
-- takes one of valid XML files and renames it to current_keybox_{checksum}.xml
-- puts current_keybox_{checksum}.xml as keybox.xml in selected location (OneDrive for example) - only if current_keybox_{checksum}.xml has been revoked, has expired or hasn't existed before running the script
+- renames valid XML files to _keybox_{checksum}.xml_
+- takes one of valid XML files and renames it to _current_keybox_{checksum}.xml_
+- puts _current_keybox_{checksum}.xml_ as _keybox.xml_ in a selected location (OneDrive for example) - only if _current_keybox_{checksum}.xml_ has been revoked, has expired or hasn't existed before running the script
 
 **How to use:**
-1. Place check_keyboxes.py in selected directory.
-2. Create a new "keyboxes" directory in the same location as check_keyboxes.py.
-3. Put all your keybox XML files to "keyboxes" directory.
-4. Edit check_keyboxes.py and change target_path variable on top of the file to the path you'd like to copy current_keybox_{checksum}.xml to.
-5. Run check_keyboxes.py.
+1. Place _check_keyboxes.py_ in selected directory.
+2. Create a new _keyboxes_ directory in the same location as _check_keyboxes.py_.
+3. Put all your keybox XML files to _keyboxes_ directory.
+4. Edit _check_keyboxes.py_ and change _target_path_ variable on top of the file to the path you'd like to copy _current_keybox_{checksum}.xml_ to.
+5. Run _check_keyboxes.py_.
 
 **Credits:**
 - badabing2005 for PixelFlasher - https://github.com/badabing2005/PixelFlasher
