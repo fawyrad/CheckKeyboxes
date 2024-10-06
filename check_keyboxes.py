@@ -8,6 +8,8 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from cryptography import x509
 
+target_path = 'E:\Gleniu\OneDrive\Android\keybox'
+
 # Function to compute the MD5 hash of a file
 def compute_file_hash(file_path):
     md5_hash = hashlib.md5()
@@ -231,8 +233,7 @@ if valid_files:
         shutil.move(valid_file, current_copy_path)
         print('\n--------------------------------------')
         print(f"\nCurrent keybox was revoked or expired. Renaming {valid_file_filename} to current_{valid_file_filename}...")
-        print(f"\nCopying current_{valid_file_filename} to OneDrive as keybox.xml...")
-        target_path = 'E:\Gleniu\OneDrive\Android\keybox'
+        print(f"\nCopying current_{valid_file_filename} to {target_path} as keybox.xml...")
         if not os.path.exists(target_path):
             os.makedirs(target_path)
         shutil.copyfile(current_copy_path, target_path + '\keybox.xml')
