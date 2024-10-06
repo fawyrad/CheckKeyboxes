@@ -1,6 +1,6 @@
 # **CheckKeyboxes**
 
-A script to batch process a directory with keybox XML files.
+A Python script to batch process a directory with keybox XML files.
 
 **What it does:**
 - checks for valid keybox XML files
