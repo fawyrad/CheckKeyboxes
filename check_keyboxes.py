@@ -59,7 +59,6 @@ def request_with_fallback(method, url, headers=None, data=None, stream=False):
         print(f"An unexpected error occurred: {e}")
     return response
 
-
 url = "https://android.googleapis.com/attestation/status"
 crl = request_with_fallback(method='GET', url=url, headers={'Cache-Control': 'max-age=0'})
 if crl is not None and crl != 'ERROR':
