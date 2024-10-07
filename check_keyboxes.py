@@ -220,7 +220,6 @@ if valid_files:
         print('\n--------------------------------------')
         print(f"\nRenaming {valid_file_filename} to current_{valid_file_filename}...")
         print(f"\nCopying current_{valid_file_filename} to {target_path} as keybox.xml...")
-        target_path = 'E:\Gleniu\OneDrive\Android\keybox'
         if not os.path.exists(target_path):
             os.makedirs(target_path)
         shutil.copyfile(current_copy_path, target_path + '\keybox.xml')
