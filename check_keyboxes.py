@@ -222,7 +222,7 @@ if valid_files:
         print(f"\nCopying current_{valid_file_filename} to {target_path} as keybox.xml...")
         if not os.path.exists(target_path):
             os.makedirs(target_path)
-        shutil.copyfile(current_copy_path, target_path + '\\keybox.xml')
+        shutil.copyfile(current_copy_path, target_path + 'keybox.xml')
         print("\nPlease copy keybox.xml to /data/adb/tricky_store.")
     elif current_moved:
         valid_file = valid_files[0]
