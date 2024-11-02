@@ -27,7 +27,7 @@ def check_keybox(file_path):
     for cert in certs:
         cert = "\n".join(line.strip() for line in cert.strip().split("\n"))
         parsed = x509.load_pem_x509_certificate(cert.encode())
-        certs_expiry_dates.append(parsed.not_valid_after)
+        certs_expiry_dates.append(parsed.not_valid_after_utc)
         if "Software Attestation" in str(parsed.issuer):
             is_sw_signed = True
         sn = f'{parsed.serial_number:x}'
@@ -134,23 +134,23 @@ for filename in os.listdir(keyboxes_directory):
                     print(f"Revoked: Yes\nKeybox is revoked. Moving as {new_filename} to invalid directory.")
                     shutil.move(file_path, destination)
                     revoked_keyboxes += 1
-                elif utc.localize(expiry_date) < utc.localize(datetime.now()):
+                elif expiry_date < utc.localize(datetime.now()):
                     new_filename = 'expired_' + filename
                     destination = os.path.join(invalid_directory, new_filename)
                     current_moved = True
-                    print(f"Revoked: No\nExpired on: {expiry_date}+00:00\nKeybox is expired. Moving as {new_filename} to invalid directory.")
+                    print(f"Revoked: No\nExpired on: {expiry_date}\nKeybox is expired. Moving as {new_filename} to invalid directory.")
                     shutil.move(file_path, destination)
                     expired_keyboxes += 1
                 elif is_sw_signed:
                     new_filename = 'sw_signed_' + filename
                     destination = os.path.join(invalid_directory, new_filename)
                     current_moved = True
-                    print(f"Revoked: No\nExpires on: {expiry_date}+00:00\nKeybox is software signed and not hardware-backed. Moving as {new_filename} to invalid directory.")
+                    print(f"Revoked: No\nExpires on: {expiry_date}\nKeybox is software signed and not hardware-backed. Moving as {new_filename} to invalid directory.")
                     shutil.move(file_path, destination)
                     sw_signed_keyboxes += 1
                 else:
                     valid_files.append(file_path)
-                    print(f"Revoked: No\nExpires on: {expiry_date}+00:00")
+                    print(f"Revoked: No\nExpires on: {expiry_date}")
             except:
                 new_filename = "invalid_" + filename
                 destination = os.path.join(invalid_directory, new_filename)
@@ -176,21 +176,21 @@ for filename in os.listdir(keyboxes_directory):
                         print(f"Revoked: Yes\nKeybox is revoked. Moving as {new_filename} to invalid directory.")
                         shutil.move(file_path, destination)
                         revoked_keyboxes += 1
-                    elif utc.localize(expiry_date) < utc.localize(datetime.now()):
+                    elif expiry_date < utc.localize(datetime.now()):
                         new_filename = 'expired_' + filename
                         destination = os.path.join(invalid_directory, new_filename)
-                        print(f"Revoked: No\nExpired on: {expiry_date}+00:00\nKeybox is expired. Moving as {new_filename} to invalid directory.")
+                        print(f"Revoked: No\nExpired on: {expiry_date}\nKeybox is expired. Moving as {new_filename} to invalid directory.")
                         shutil.move(file_path, destination)
                         expired_keyboxes += 1
                     elif is_sw_signed:
                         new_filename = 'sw_signed_' + filename
                         destination = os.path.join(invalid_directory, new_filename)
-                        print(f"Revoked: No\nExpires on: {expiry_date}+00:00\nKeybox is software signed and not hardware-backed. Moving as {new_filename} to invalid directory.")
+                        print(f"Revoked: No\nExpires on: {expiry_date}\nKeybox is software signed and not hardware-backed. Moving as {new_filename} to invalid directory.")
                         shutil.move(file_path, destination)
                         sw_signed_keyboxes += 1
                     else:
                         valid_files.append(file_path)
-                        print(f"Revoked: No\nExpires on: {expiry_date}+00:00")
+                        print(f"Revoked: No\nExpires on: {expiry_date}")
                 except:
                     new_filename = "invalid_" + filename
                     destination = os.path.join(invalid_directory, new_filename)
@@ -222,7 +222,7 @@ if valid_files:
         print(f"\nCopying current_{valid_file_filename} to {target_path} as keybox.xml...")
         if not os.path.exists(target_path):
             os.makedirs(target_path)
-        shutil.copyfile(current_copy_path, target_path + '\keybox.xml')
+        shutil.copyfile(current_copy_path, target_path + '\\keybox.xml')
         print("\nPlease copy keybox.xml to /data/adb/tricky_store.")
     elif current_moved:
         valid_file = valid_files[0]
