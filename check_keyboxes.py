@@ -4,11 +4,27 @@ import shutil
 import requests
 import sys
 import pytz
-import xml.etree.ElementTree as ET
+from lxml import etree
 from datetime import datetime
 from cryptography import x509
 
 target_path = 'E:\\Gleniu\\OneDrive\\Android\\keybox\\'
+
+# Funtion to clean XML files and check if they are valid
+def clean_xml_file(file_path):
+    is_valid_xml = None
+    parser = etree.XMLParser(recover=True)
+    try:
+        tree = etree.parse(file_path, parser)
+        if tree.getroot() is not None:
+            with open(file_path, 'wb') as cleaned_file:
+                cleaned_file.write(etree.tostring(tree, pretty_print=True, encoding='UTF-8', xml_declaration=True))
+            is_valid_xml = True
+        else:
+            is_valid_xml = False
+    except:
+        is_valid_xml = False
+    return is_valid_xml
 
 # Function to compute the MD5 hash of a file
 def compute_file_hash(file_path):
@@ -23,7 +39,9 @@ def check_keybox(file_path):
     expiry_date = None
     is_sw_signed = None
     is_revoked = None
-    certs = [elem.text for elem in ET.parse(file_path).getroot().iter() if elem.tag == 'Certificate']
+    parser = etree.XMLParser(recover=True)
+    tree = etree.parse(file_path, parser)
+    certs = [elem.text for elem in tree.getroot().iter() if elem.tag == 'Certificate']
     for cert in certs:
         cert = "\n".join(line.strip() for line in cert.strip().split("\n"))
         parsed = x509.load_pem_x509_certificate(cert.encode())
@@ -89,33 +107,42 @@ duplicate_keyboxes = 0
 keyboxes_expiry_dates = []
 current_keybox = None
 
-print("Checking keyboxes filenames...")
+print("Checking XML files...")
 for filename in os.listdir(keyboxes_directory):
     file_path = os.path.join(keyboxes_directory, filename)
     if filename.endswith(".xml"):
-        if filename.startswith("current_"): 
-            file_hash = compute_file_hash(file_path)
-            current_hash = file_hash
-            new_filename = "current_keybox_"+file_hash[:6]+".xml"
-            current_keybox = new_filename
-            if filename != new_filename:
-                destination = os.path.join(keyboxes_directory, new_filename)
-                shutil.move(file_path, destination)
-                print(f"\nRenaming {filename} to {new_filename}...")
-        else:
-            file_hash = compute_file_hash(file_path)
-            new_filename = "keybox_"+file_hash[:6]+".xml"
-            if filename != new_filename:
-                destination = os.path.join(keyboxes_directory, new_filename)
-                counter = 1
-                while os.path.exists(destination):
-                    new_filename = new_filename[:-4] + f"_0{counter}" + ".xml"
+        is_valid_xml = clean_xml_file(file_path)
+        if is_valid_xml == True:
+            if filename.startswith("current_"): 
+                file_hash = compute_file_hash(file_path)
+                current_hash = file_hash
+                new_filename = "current_keybox_"+file_hash[:6]+".xml"
+                current_keybox = new_filename
+                if filename != new_filename:
                     destination = os.path.join(keyboxes_directory, new_filename)
-                    counter += 1
-                print(f"\nRenaming {filename} to {new_filename}...")
-                shutil.move(file_path, destination)
+                    print(f"\n{filename} is a valid XML file. Renaming {filename} to {new_filename}...")
+                    shutil.move(file_path, destination)
+            else:
+                file_hash = compute_file_hash(file_path)
+                new_filename = "keybox_"+file_hash[:6]+".xml"
+                if filename != new_filename:
+                    destination = os.path.join(keyboxes_directory, new_filename)
+                    counter = 1
+                    while os.path.exists(destination):
+                        new_filename = new_filename[:-4] + f"_0{counter}" + ".xml"
+                        destination = os.path.join(keyboxes_directory, new_filename)
+                        counter += 1
+                    print(f"\n{filename} is a valid XML file. Renaming {filename} to {new_filename}...")
+                    shutil.move(file_path, destination)
+        else:
+            new_filename = "invalid_" + filename
+            destination = os.path.join(invalid_directory, new_filename)
+            print(f"\n{filename} is not a valid XML file. Moving as {new_filename} to invalid directory.")
+            shutil.move(file_path, destination)
+            invalid_files += 1
+        processed_files += 1
 
-print('\nProcessing keyboxes directory...')
+print('\nProcessing valid XML files...')
 print('--------------------------------------')
 for filename in os.listdir(keyboxes_directory):
     file_path = os.path.join(keyboxes_directory, filename)
@@ -197,7 +224,6 @@ for filename in os.listdir(keyboxes_directory):
                     print(f"File is not a valid keybox. Moving as {new_filename} to invalid directory.")
                     shutil.move(file_path, destination)
                     invalid_files += 1
-        processed_files += 1
         print('--------------------------------------')
 
 print(f"""
