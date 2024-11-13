@@ -36,9 +36,11 @@ def compute_file_hash(file_path):
 
 # Function to check a single keybox
 def check_keybox(file_path):
+    certs_expiry_dates = []
     expiry_date = None
-    is_sw_signed = None
-    is_revoked = None
+    is_sw_signed = False
+    is_revoked = False
+    is_expired = False
     parser = etree.XMLParser(recover=True)
     tree = etree.parse(file_path, parser)
     certs = [elem.text for elem in tree.getroot().iter() if elem.tag == 'Certificate']
@@ -46,14 +48,17 @@ def check_keybox(file_path):
         cert = "\n".join(line.strip() for line in cert.strip().split("\n"))
         parsed = x509.load_pem_x509_certificate(cert.encode())
         certs_expiry_dates.append(parsed.not_valid_after_utc)
-        if "Software Attestation" in str(parsed.issuer):
-            is_sw_signed = True
         sn = f'{parsed.serial_number:x}'
         if sn in crl["entries"].keys():
             is_revoked = True
+        if "Software Attestation" in str(parsed.issuer):
+            is_sw_signed = True
     expiry_date = min(certs_expiry_dates)
-    keyboxes_expiry_dates.append(expiry_date)
-    return expiry_date, is_sw_signed, is_revoked
+    if expiry_date < utc.localize(datetime.now()):
+        is_expired = True
+    if not is_revoked and not is_sw_signed and not is_expired:
+        keyboxes_expiry_dates.append(expiry_date)
+    return expiry_date, is_sw_signed, is_revoked, is_expired
     
 def request_with_fallback(method, url, headers=None, data=None, stream=False):
     response = 'ERROR'
@@ -146,14 +151,11 @@ print('\nProcessing valid XML files...')
 print('--------------------------------------')
 for filename in os.listdir(keyboxes_directory):
     file_path = os.path.join(keyboxes_directory, filename)
-    certs_expiry_dates = []
-    is_sw_signed = False
-    is_revoked = False
     if filename.endswith(".xml"):
         print(f"{filename}:")
         if filename == current_keybox:
             try:
-                expiry_date, is_sw_signed, is_revoked = check_keybox(file_path)
+                expiry_date, is_sw_signed, is_revoked, is_expired = check_keybox(file_path)
                 if is_revoked:
                     new_filename = 'revoked_' + filename[len("current_"):]
                     destination = os.path.join(invalid_directory, new_filename)
@@ -161,7 +163,7 @@ for filename in os.listdir(keyboxes_directory):
                     print(f"Revoked: Yes\nKeybox is revoked. Moving as {new_filename} to invalid directory.")
                     shutil.move(file_path, destination)
                     revoked_keyboxes += 1
-                elif expiry_date < utc.localize(datetime.now()):
+                elif is_expired:
                     new_filename = 'expired_' + filename
                     destination = os.path.join(invalid_directory, new_filename)
                     current_moved = True
@@ -196,7 +198,7 @@ for filename in os.listdir(keyboxes_directory):
             else:
                 seen_hashes.add(file_hash)
                 try:
-                    expiry_date, is_sw_signed, is_revoked = check_keybox(file_path)
+                    expiry_date, is_sw_signed, is_revoked, is_expired = check_keybox(file_path)
                     if is_revoked:
                         new_filename = 'revoked_' + filename
                         destination = os.path.join(invalid_directory, new_filename)
@@ -263,8 +265,15 @@ if valid_files:
         shutil.copyfile(current_copy_path, target_path + 'keybox.xml')
         print("\nPlease copy new keybox.xml to /data/adb/tricky_store.")
 else:
+    current_copy_path = os.path.join(current_directory, "aosp_keybox.xml")
     print('\n--------------------------------------')
-    print("\nNo valid keyboxes available at this time. Search for a new keybox.")
+    print("\nNo valid keyboxes available at this time.")
+    print(f"\nCopying aosp_keybox.xml to {target_path} as keybox.xml...")
+    if not os.path.exists(target_path):
+        os.makedirs(target_path)
+    shutil.copyfile(current_copy_path, target_path + 'keybox.xml')
+    print("\nPlease copy new keybox.xml to /data/adb/tricky_store.")
+    print("\nAs it is software signed keybox, you need to use it along with Play Integrity Fix module to get DEVICE verdict.")
 
 print('\n--------------------------------------')
 input("\nDone. Press Enter to exit...")
