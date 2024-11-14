@@ -11,10 +11,11 @@ A Python script to batch process a directory with keybox XML files.
 - renames valid XML files to _keybox\_{checksum}.xml_
 - takes one of valid XML files and renames it to _current\_keybox\_{checksum}.xml_
 - puts _current\_keybox\_{checksum}.xml_ as _keybox.xml_ in a selected location (OneDrive for example) - only if _current\_keybox\_{checksum}.xml_ has been revoked, has expired or hasn't existed before running the script
+- puts software signed _aosp\_keybox.xml_ as _keybox.xml_ in a selected location (OneDrive for example) that can be used along with Play Integrity Fix module to get DEVICE verdict - only if there are no valid keyboxes left
 
 **How to use:**
-1. Place _check\_keyboxes.py_ in selected directory.
-2. Create a new _keyboxes_ directory in the same location as _check\_keyboxes.py_.
+1. Place _check\_keyboxes.py_ and _aosp\_keybox.xml_ in selected directory.
+2. Create a new _keyboxes_ directory in the same location as _check\_keyboxes.py_ and _aosp\_keybox.xml_.
 3. Put all your keybox XML files to _keyboxes_ directory.
 4. Edit _check\_keyboxes.py_ and change _target\_path_ variable on top of the file to the path you'd like to copy _current\_keybox\_{checksum}.xml_ to.
 5. Run _check\_keyboxes.py_.
